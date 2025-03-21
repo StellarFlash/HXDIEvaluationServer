@@ -2,6 +2,7 @@ from typing import List, Dict, Optional
 from tqdm import tqdm
 import json
 from datetime import datetime
+import uuid
 from app.models.evidence.item import EvidenceItem
 from app.utils.maas_client import MaaSClient
 from app.models.evidence.prompt import DEFAULT_SUMMARY_PROMPT
@@ -29,7 +30,7 @@ class EvidenceManager:
             # 转换为 EvidenceItem 对象
             for idx, item in enumerate(data):
                 evidence = EvidenceItem(
-                    id=str(idx),  # 分配序号作为id，转换为字符串
+                    id=str(uuid.uuid4()),  # 使用UUID作为ID
                     created_at=datetime.now().isoformat(),  # 设置当前时间为创建时间
                     filename=item["filename"],
                     file_format=item["file_format"],

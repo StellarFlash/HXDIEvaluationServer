@@ -1,3 +1,4 @@
+import uuid
 from elasticsearch import Elasticsearch
 from app.config.config import Config
 from typing import Dict, Any, TYPE_CHECKING, Type
@@ -19,6 +20,14 @@ class Database:
             ssl_show_warn=False  # 禁用SSL警告
         )
         
+        # 清理评估规范索引
+        eval_spec_index = self._get_index_name("evaluation_specifications")
+        if self.es.indices.exists(index=eval_spec_index):
+            self.es.delete_by_query(
+                index=eval_spec_index,
+                body={"query": {"match_all": {}}}
+            )
+        
     def _get_index_name(self, base_name: str) -> str:
         """根据test_mode获取索引名称"""
         # 如果索引名已经以'test_'开头，则直接返回
@@ -33,10 +42,13 @@ class Database:
         Returns:
             存储的文档ID
         """
-        return self.es.index(
+        evidence_id = str(uuid.uuid4())
+        self.es.index(
             index=self._get_index_name("evidence_metadata"),
+            id=evidence_id,
             body=evidence
-        )['_id']
+        )
+        return evidence_id
 
     def store_evaluation_spec(self, spec: Dict[str, Any]) -> str:
         """存储评估规范
@@ -45,10 +57,13 @@ class Database:
         Returns:
             存储的文档ID
         """
-        return self.es.index(
+        spec_id = str(uuid.uuid4())
+        self.es.index(
             index=self._get_index_name("evaluation_specifications"),
+            id=spec_id,
             body=spec
-        )['_id']
+        )
+        return spec_id
 
     def search_evidence(self, query: Dict[str, Any]) -> Dict[str, Any]:
         """搜索证明材料

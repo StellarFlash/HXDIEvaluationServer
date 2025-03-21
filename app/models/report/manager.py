@@ -1,6 +1,7 @@
 from typing import List, Dict, Optional
 from tqdm import tqdm
 from datetime import datetime
+import uuid
 from app.models.report.item import ReportItem
 from app.models.report.prompt import DEFAULT_REPORT_PROMPT
 from app.models.evidence.item import EvidenceItem
@@ -26,7 +27,7 @@ class ReportManager:
         if 0 <= index < len(self.reports):
             report = self.reports[index]
             return {
-                "id": str(index),
+                "id": str(uuid.uuid4()),
                 "evaluation_spec": report.spec.to_dict(embeddings=False),  # 保持字典格式
                 "evidences": [e.to_dict(embeddings=False) for e in report.evidences],  # 保持字典格式
                 "is_qualified": report.is_qualified,
