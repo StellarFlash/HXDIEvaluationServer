@@ -6,9 +6,9 @@ from typing import List
 from app.models.document.manager import DocumentManager
 from api.dependencies import get_document_manager
 
-router = APIRouter(prefix="/upload", tags=["upload"])
+router = APIRouter(prefix="/evidences", tags=["evidences"])
 
-@router.post("/documents", response_model=List[str])
+@router.post("/upload", response_model=List[str])
 def upload_documents(
     files: List[UploadFile] = File(...),
     document_manager: DocumentManager = Depends(get_document_manager)
@@ -38,9 +38,14 @@ def upload_documents(
             saved_files.append(str(file_path))
 
         # 重新初始化管理器实例
-        from api.managers import document_manager, evidence_manager
-        document_manager = document_manager.__class__()
-        evidence_manager = evidence_manager.__class__()
+        from api.managers import report_manager,evidence_manager
+        evidence_manager.load_from_json(file_path = "data/evidence.json")
+        evidence_manager.generate_index()
+        print("Evidence Updated.")
+        print(str(evidence_manager.evidences.__sizeof__()) + " evidence in total.")
+        
+        report_manager.load_data()
+        
         
         return JSONResponse(
             status_code=200,

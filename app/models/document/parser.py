@@ -89,7 +89,7 @@ class DocumentParser:
         chunks = split_markdown_by_semantics(content, chunk_size=1000)  # Example chunk size
         
         # Create chunks directory
-        chunks_dir = self.chunks_dir / file_path.stem
+        chunks_dir = self.chunks_dir / str(file_path.stem)
         chunks_dir.mkdir(parents=True, exist_ok=True)
         
         chunk_objects = []

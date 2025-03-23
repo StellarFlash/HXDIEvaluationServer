@@ -4,8 +4,23 @@ from concurrent.futures import ThreadPoolExecutor
 from app.models.evidence.manager import EvidenceManager
 from api.dependencies import get_evidence_manager, run_in_threadpool
 from api.schemas.evidences import EvidenceResponse, EvidenceListResponse
+from fastapi import status
 
 router = APIRouter()
+
+@router.post("/generate_index", status_code=status.HTTP_202_ACCEPTED)
+async def generate_evidence_index(
+    manager: EvidenceManager = Depends(get_evidence_manager)
+):
+    """生成证明材料索引"""
+    try:
+        return await run_in_threadpool(manager.generate_index)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"生成证明材料索引失败: {str(e)}"
+        )
+
 
 @router.get("/", response_model=EvidenceListResponse)
 async def get_evidences(

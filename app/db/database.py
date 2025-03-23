@@ -231,7 +231,7 @@ class Database:
             print(f"Error retrieving evidence for spec {spec_id}: {str(e)}")
             return {"hits": {"total": {"value": 0}, "hits": []}}
 
-    def init_test_db(self) -> None:
+    def init_db(self) -> None:
         """初始化测试数据库"""
         print("Initializing test database...")
         

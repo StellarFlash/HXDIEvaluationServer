@@ -6,6 +6,7 @@ class EvidenceResponse(BaseModel):
     filename: str
     content: str
     summary: str
+    keywords: List[str]
     created_at: str
 
 class EvidenceListResponse(BaseModel):

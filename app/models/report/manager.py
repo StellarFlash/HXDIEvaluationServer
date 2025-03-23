@@ -186,17 +186,22 @@ class ReportManager:
         self.reports.append(report_item)
         return report_item
     
-    def init_test_data(self) -> None:
+    def load_data(self) -> Dict:
         """使用测试数据初始化报告管理器
         
         1. 从测试索引中获取所有评估规范ID
         2. 为每个评估规范创建报告项
         3. 生成完整的测试报告
+        
+        Returns:
+            包含操作结果的字典，包含success和message键
         """
         if self._initialized:
-            print("警告: 报告管理器已经初始化，跳过重复初始化")
-            return
-            
+            return {
+                "success": False,
+                "message": "报告管理器已经初始化，跳过重复初始化"
+            }
+        
         try:
             self._initialized = True
             # 获取所有spec_id
@@ -214,17 +219,20 @@ class ReportManager:
                 body={"query": {"match_all": {}}},
                 size=10  # 限制返回结果数量
             )
-            # print(f"查询结果: {response}")
             
             if not response['hits']['hits']:
-                print(f"警告: 索引 {self.evaluation_spec_index} 中没有找到任何评估规范")
+                error_msg = f"索引 {self.evaluation_spec_index} 中没有找到任何评估规范"
+                print(f"警告: {error_msg}")
                 # 尝试列出所有索引
                 try:
                     indices = database.es.cat.indices(format="json")
                     print(f"当前所有索引: {indices}")
                 except Exception as e:
                     print(f"获取索引列表失败: {str(e)}")
-                return
+                return {
+                    "success": False,
+                    "message": error_msg
+                }
                 
             spec_ids = [hit['_id'] for hit in response['hits']['hits']]
             print(f"找到 {len(spec_ids)} 个评估规范ID: {spec_ids}")
@@ -240,5 +248,14 @@ class ReportManager:
                     print(f"为评估规范 {spec_id} 创建报告项失败: {str(e)}")
                     
             print(f"初始化完成，当前报告总数: {len(self.reports)}")
+            return {
+                "success": True,
+                "message": "数据加载成功"
+            }
         except Exception as e:
-            print(f"初始化测试数据失败: {str(e)}")
+            error_msg = f"初始化测试数据失败: {str(e)}"
+            print(error_msg)
+            return {
+                "success": False,
+                "message": error_msg
+            }

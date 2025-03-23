@@ -89,10 +89,30 @@ def generate_reports(
             raise HTTPException(
                 status_code=500,
                 detail=result.get("message", "报告生成失败")
-            )
+        )
         return result
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"报告生成失败: {str(e)}"
+        )
+
+@router.post("/reload-data/")
+async def reload_data(
+    manager: ReportManager = Depends(get_report_manager)
+):
+    try:
+        result = await run_in_threadpool(
+            manager.load_data
+        )
+        if not result.get("success"):
+            raise HTTPException(
+                status_code=500,
+                detail=result.get("message", "数据重载失败")
+            )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"数据重载失败: {str(e)}"
         )

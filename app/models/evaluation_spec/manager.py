@@ -13,11 +13,6 @@ class EvaluationSpecManager:
         self.load_from_json()
         self.generate_index()
         
-    def load_from_directory(self, dir_path: str) -> None:
-        """从目录加载所有评估规范"""
-        # TODO: 实现目录加载逻辑
-        pass
-        
     def load_from_json(self, file_path: str = "data/evaluation_spec.json") -> None:
         """
         从json文件加载所有评估规范
@@ -30,14 +25,15 @@ class EvaluationSpecManager:
         
         # 转换为 EvaluationSpecItem 对象
             for item in data:
+                # 为每个字段提供默认值，防止JSON数据缺失导致异常
                 spec = EvaluationSpecItem(
-                    primary_title=item["primary_title"],
-                    secondary_title=item.get("secondary_title"),
-                    tertiary_title=item.get("tertiary_title"),
-                    content=item["content"],
-                    evaluation_guidelines=item["evaluation_guidelines"],
-                    keywords=item["keywords"],
-                    summary=item["summary"]
+                    primary_title=item.get("primary_title", "未命名评估规范"),
+                    secondary_title=item.get("secondary_title", ""),
+                    tertiary_title=item.get("tertiary_title", ""),
+                    content=item.get("content", ""),
+                    evaluation_guidelines=item.get("evaluation_guidelines", []),
+                    keywords=item.get("keywords", []),
+                    summary=item.get("summary", "")
                 )
                 self.specs.append(spec)
             
@@ -49,6 +45,18 @@ class EvaluationSpecManager:
         except Exception as e:
             print(f"Error loading evaluation specs: {e}")
     
+    def save_to_json(self, file_path: str = "data/evaluation_spec.json") -> None:
+        """将评估规范保存到json文件
+        Args:
+            file_path: JSON 文件路径
+        """
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump([spec.to_dict(embeddings=False) for spec in self.specs], f, ensure_ascii=False, indent=4)
+            print(f"Saved {len(self.specs)} evaluation specs to {file_path}")
+        except Exception as e:
+            print(f"Error saving evaluation specs: {e}")
+
     def generate_index(self, summary_prompt: str = None) -> None:
         """生成评估规范索引
         Args:
@@ -76,7 +84,9 @@ class EvaluationSpecManager:
                 
                 # 更新摘要和关键词
                 spec.summary = response['summary']
-                spec.keywords = response['keywords'].split(',')
+                # 处理keywords，兼容字符串和列表
+                keywords = response['keywords']
+                spec.keywords = keywords.split(',') if isinstance(keywords, str) else keywords
             
             
             # 获取摘要和关键词的向量
@@ -90,6 +100,9 @@ class EvaluationSpecManager:
             except Exception as e:
                 print(f"Error inserting evaluation spec: {str(e)}")
                 raise
+        
+        # 保存更新后的评估规范到JSON文件
+        self.save_to_json()
             
     # EvaluationSpecManager新增方法
     def get_evaluation_spec(self, index: int) -> Optional[Dict]:
