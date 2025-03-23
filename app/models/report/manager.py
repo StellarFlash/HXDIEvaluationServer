@@ -14,6 +14,7 @@ class ReportManager:
     def __init__(self, evaluation_spec_index: str = None, evidence_index:str = None):
         self.reports: List[ReportItem] = []
         self.client = MaaSClient()
+        self._initialized = False
         self.evaluation_spec_index = database._get_index_name("evaluation_specifications") if evaluation_spec_index is None else evaluation_spec_index
         self.evidence_index = database._get_index_name("evidence_metadata") if evidence_index is None else evidence_index
         
@@ -192,7 +193,12 @@ class ReportManager:
         2. 为每个评估规范创建报告项
         3. 生成完整的测试报告
         """
+        if self._initialized:
+            print("警告: 报告管理器已经初始化，跳过重复初始化")
+            return
+            
         try:
+            self._initialized = True
             # 获取所有spec_id
             print(f"正在查询索引 {self.evaluation_spec_index}...")
             # 先尝试简单的count查询
@@ -208,7 +214,7 @@ class ReportManager:
                 body={"query": {"match_all": {}}},
                 size=10  # 限制返回结果数量
             )
-            print(f"查询结果: {response}")
+            # print(f"查询结果: {response}")
             
             if not response['hits']['hits']:
                 print(f"警告: 索引 {self.evaluation_spec_index} 中没有找到任何评估规范")
@@ -236,31 +242,3 @@ class ReportManager:
             print(f"初始化完成，当前报告总数: {len(self.reports)}")
         except Exception as e:
             print(f"初始化测试数据失败: {str(e)}")
-
-if __name__ == "__main__":
-    # 初始化ReportManager
-    manager = ReportManager()
-    
-    # 获取所有spec_id
-    response = database.es.search(
-        index= "test_evaluation_specifications",
-        body={"query": {"match_all": {}}}
-    )
-    spec_ids = [hit['_id'] for hit in response['hits']['hits']]
-    
-    # 为每个spec_id添加报告项
-    for i, spec_id in enumerate(spec_ids, 1):
-        print(f"正在处理第{i}个报告项...")
-        report_item = manager.add_report_item(spec_id)
-        print(f"报告项{i}创建成功，包含{len(report_item.evidences)}条证明材料")
-    
-    # 生成报告
-    print("开始生成报告...")
-    manager.generate_report()
-    
-    # 打印结果
-    print("\n报告生成结果：")
-    for i, report in enumerate(manager.reports, 1):
-        print(f"\n报告项{i}:")
-        print(f"评估结论: {report.conclusion}")
-        print(f"是否合格: {report.is_qualified}")

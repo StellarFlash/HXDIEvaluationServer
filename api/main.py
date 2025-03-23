@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import reports_router, evidences_router, evaluation_specs_router
+from api.routes import reports_router, evidences_router, evaluation_specs_router, upload_router
 from api.managers import report_manager, evidence_manager, evaluation_spec_manager
 
 from app.db.database import database
@@ -13,10 +13,6 @@ def initialize_data():
         # 初始化测试数据库
         print("Initializing test database...")
         database.init_test_db()
-        
-        # 初始化报告数据
-        print("Initializing report data...")
-        report_manager.init_test_data()
         
     except Exception as e:
         print(f"Error initializing test data: {str(e)}")
@@ -46,6 +42,7 @@ app.add_middleware(
 app.include_router(reports_router, prefix="/api/v1/reports", tags=["reports"])
 app.include_router(evidences_router, prefix="/api/v1/evidences", tags=["evidences"])
 app.include_router(evaluation_specs_router, prefix="/api/v1/evaluation_specs", tags=["evaluation_specs"])
+app.include_router(upload_router, prefix="/api/v1/upload", tags=["upload"])
 
 if __name__ == "__main__":
     import uvicorn

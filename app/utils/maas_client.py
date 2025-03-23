@@ -1,19 +1,20 @@
 from openai import OpenAI
-from app.config.config import Config
+from app.config.config import config
+import base64
 
 class MaaSClient:
     def __init__(self):
         self.llm_client = OpenAI(
-            api_key=Config.LLM_API_KEY,
-            base_url=Config.LLM_BASE_URL
+            api_key=config.LLM_API_KEY,
+            base_url=config.LLM_BASE_URL
         )
         self.vlm_client = OpenAI(
-            api_key=Config.VLM_API_KEY,
-            base_url=Config.VLM_BASE_URL
+            api_key=config.VLM_API_KEY,
+            base_url=config.VLM_BASE_URL
         )
         self.embedding_client = OpenAI(
-            api_key=Config.EMBEDDING_API_KEY,
-            base_url=Config.EMBEDDING_BASE_URL
+            api_key=config.EMBEDDING_API_KEY,
+            base_url=config.EMBEDDING_BASE_URL
         )
 
     def chat_completion(self, messages, model=None, output_format=None):
@@ -30,7 +31,7 @@ class MaaSClient:
             
         response = self.llm_client.chat.completions.create(
             messages=messages,
-            model=model or Config.LLM_MODEL,
+            model=model or config.LLM_MODEL,
             response_format={"type": "json_object"} if output_format == 'json' else None
         )
         
@@ -45,11 +46,37 @@ class MaaSClient:
             'text': content
         }
 
-    def vision_completion(self, messages, model=None):
-        return self.vlm_client.chat.completions.create(
+    def vision_completion(self, image_path: str, prompt: str = "Describe this image.", model=None):
+        """
+        Generate a description for an image using a Vision-Language Model (VLM).
+        
+        Args:
+            image_path (str): Path to the image file.
+            prompt (str): Optional prompt to guide the VLM.
+            model: Optional model name.
+        
+        Returns:
+            str: Description of the image.
+        """
+        with open(image_path, "rb") as image_file:
+            base64_image = base64.b64encode(image_file.read()).decode("utf-8")
+        
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                ]
+            }
+        ]
+        
+        response = self.vlm_client.chat.completions.create(
             messages=messages,
-            model=model or Config.VLM_MODEL
+            model=model or config.VLM_MODEL
         )
+        
+        return response.choices[0].message.content.strip()
 
     def get_embeddings(self, input, model=None, dimensions=1024, encoding_format="float"):
         """获取文本的嵌入向量
@@ -63,7 +90,7 @@ class MaaSClient:
         """
         return self.embedding_client.embeddings.create(
             input=input,
-            model=model or Config.EMBEDDING_MODEL,
+            model=model or config.EMBEDDING_MODEL,
             dimensions=dimensions,
             encoding_format=encoding_format
         ).data[0].embedding
@@ -73,8 +100,19 @@ maas_client = MaaSClient()
 def chat_completion(messages, model=None):
     return maas_client.chat_completion(messages, model)
 
-def vision_completion(messages, model=None):
-    return maas_client.vision_completion(messages, model)
+def vision_completion(image_path: str, prompt: str = "Describe this image.", model=None) -> str:
+    """
+    External interface to generate a description for an image using a Vision-Language Model (VLM).
+    
+    Args:
+        image_path (str): Path to the image file.
+        prompt (str): Optional prompt to guide the VLM.
+        model: Optional model name.
+        
+    Returns:
+        str: Description of the image.
+    """
+    return maas_client.vision_completion(image_path, prompt, model)
 
 def get_embeddings(input, model=None):
     return maas_client.get_embeddings(input, model)

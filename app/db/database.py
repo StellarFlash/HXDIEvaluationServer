@@ -421,3 +421,4 @@ class Database:
         return response['items'][0]['index']['_id']
 
 database = Database(test_mode=True)
+es_client = database.es

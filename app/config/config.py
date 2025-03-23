@@ -27,5 +27,8 @@ class Config:
     ES_USER = os.getenv('ES_USER')
     ES_PASSWORD = os.getenv('ES_PASSWORD')
 
+    # 文档存储路径配置
+    document_storage_path = os.getenv('DOCUMENT_STORAGE_PATH', 'data/documents')
 
-    
+# 创建全局配置实例
+config = Config()

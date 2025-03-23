@@ -1,10 +1,11 @@
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from fastapi import Depends
-from api.managers import report_manager, evidence_manager, evaluation_spec_manager
+from api.managers import report_manager, evidence_manager, evaluation_spec_manager, document_manager
 from app.models.report.manager import ReportManager
 from app.models.evidence.manager import EvidenceManager
 from app.models.evaluation_spec.manager import EvaluationSpecManager
+from app.models.document.manager import DocumentManager
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -20,6 +21,9 @@ async def get_evaluation_spec_manager() -> EvaluationSpecManager:
     """获取全局EvaluationSpecManager实例"""
     return evaluation_spec_manager
 
+async def get_document_manager() -> DocumentManager:
+    """获取全局DocumentManager实例"""
+    return document_manager
 
 
 async def run_in_threadpool(func, *args):

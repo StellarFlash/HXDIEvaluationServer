@@ -78,8 +78,6 @@ class EvaluationSpecManager:
                 spec.summary = response['summary']
                 spec.keywords = response['keywords'].split(',')
             
-            print(spec.summary)
-            print(spec.keywords)
             
             # 获取摘要和关键词的向量
             spec.summary_embedding = client.get_embeddings(spec.summary)
