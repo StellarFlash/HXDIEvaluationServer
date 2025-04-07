@@ -34,6 +34,27 @@ HXDIEvaluationServer 是一个用于评估和报告的服务器项目。
    python api/main.py
    ```
 
+## API 端点
+
+- `POST /api/upload` - 上传文档
+- `GET /api/reports` - 获取报告列表
+- `GET /api/reports/{report_id}` - 获取单个报告详情
+- `POST /api/reports` - 创建新报告
+- `PUT /api/reports/{report_id}` - 更新报告
+- `DELETE /api/reports/{report_id}` - 删除报告
+
+## ROADMAP
+
+### 近期计划
+- 实现WebUI界面
+- 添加用户认证系统
+- 优化报告生成性能
+
+### 长期计划
+- 支持多格式文档上传
+- 集成更多AI分析功能
+- 实现实时协作编辑
+
 ## 贡献指南
 
 欢迎提交Pull Request或Issue来改进本项目。

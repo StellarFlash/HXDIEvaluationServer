@@ -1,6 +1,9 @@
+from typing import Literal
 from openai import OpenAI
-from app.config.config import config
+from app.config.__init__ import get_config
 import base64
+
+config = get_config()
 
 class MaaSClient:
     def __init__(self):
@@ -37,11 +40,19 @@ class MaaSClient:
         
         # 解析响应
         content = response.choices[0].message.content
-        content = content[content.find('{')-1:content.rfind('}')+1]
+        content = content[content.find('{'):content.rfind('}')+1] if '{' in content and '}' in content else content
         # print(content)
         if output_format == 'json':
             import json
-            return json.loads(content)
+            try:
+                return json.loads(content)
+            except json.JSONDecodeError as e:
+                print(f"JSON解析失败: {e}")
+                print(f"原始响应内容: {content}")
+                return {
+                    'error': 'Invalid JSON response',
+                    'content': content
+                }
         return {
             'text': content
         }
@@ -78,7 +89,7 @@ class MaaSClient:
         
         return response.choices[0].message.content.strip()
 
-    def get_embeddings(self, input, model=None, dimensions=1024, encoding_format="float"):
+    def get_embeddings(self, input, model=None, dimensions=1024, encoding_format: Literal['float', 'base64'] = "float"):
         """获取文本的嵌入向量
         Args:
             input: 输入文本
@@ -90,7 +101,7 @@ class MaaSClient:
         """
         return self.embedding_client.embeddings.create(
             input=input,
-            model=model or config.EMBEDDING_MODEL,
+            model=model or config.EMBEDDING_MODEL or "text-embedding-v3",
             dimensions=dimensions,
             encoding_format=encoding_format
         ).data[0].embedding

@@ -1,3 +1,5 @@
+# pylint: disable=no-self-argument
+"""Disable self argument check for Pydantic field validators"""
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import datetime
@@ -11,7 +13,8 @@ class ReportResponse(BaseModel):
     created_at: Optional[str] = Field(default_factory=lambda: datetime.now().isoformat())
 
     @field_validator('is_qualified', mode='before')
-    def parse_bool(cls, v):
+    def parse_bool(cls, v):  # pylint: disable=no-self-argument
+        """Pydantic field validator must be class method (no self)"""
         if isinstance(v, bool):
             return v
         if isinstance(v, str):

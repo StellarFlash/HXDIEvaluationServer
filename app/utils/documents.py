@@ -4,10 +4,10 @@ import json
 from typing import Dict, Any, List, Union
 from abc import ABC
 from markitdown import MarkItDown
-from app.config.config import config
-from app.db.database import es_client
+import app.config as get_config
+from app.database.es_database import es_client
 
-
+config = get_config()
 class DocumentItem(ABC):
     """文档元素基类"""
     def __init__(self):

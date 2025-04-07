@@ -6,6 +6,9 @@ import uuid
 from app.models.evidence.item import EvidenceItem
 from app.utils.maas_client import MaaSClient
 from app.models.evidence.prompt import DEFAULT_SUMMARY_PROMPT
+from app.database import get_database, store_evidence
+
+database = get_database()  # 获取数据库实例
 
 class EvidenceManager:
     """证明材料管理类"""
@@ -103,8 +106,14 @@ class EvidenceManager:
             
             # 将证明材料插入Elasticsearch
             try:
-                from app.db.database import database
-                database.insert_evidence(evidence.to_dict(embeddings=True))
+                evidence_dict = evidence.to_dict(embeddings=True)
+                # 确保embedding是列表格式
+                if isinstance(evidence_dict.get("keywords_embedding"), dict):
+                    evidence_dict["keywords_embedding"] = evidence_dict["keywords_embedding"]["vector"]
+                if isinstance(evidence_dict.get("summary_embedding"), dict):
+                    evidence_dict["summary_embedding"] = evidence_dict["summary_embedding"]["vector"]
+                
+                store_evidence(database = database, evidence = evidence_dict)
             except Exception as e:
                 print(f"Error inserting evidence: {str(e)}")
                 raise

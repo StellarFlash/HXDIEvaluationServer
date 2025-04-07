@@ -4,6 +4,9 @@ import json
 from app.models.evaluation_spec.item import EvaluationSpecItem
 from app.utils.maas_client import MaaSClient
 from app.models.evaluation_spec.prompt import DEFAULT_SUMMARY_PROMPT
+from app.database import get_database, store_evaluation_spec
+
+database = get_database()  # 获取数据库实例
 
 class EvaluationSpecManager:
     """评估规范管理类"""
@@ -93,12 +96,11 @@ class EvaluationSpecManager:
             spec.summary_embedding = client.get_embeddings(spec.summary)
             spec.keywords_embedding = client.get_embeddings(' '.join(spec.keywords))
             
-            # 将评估规范插入Elasticsearch
+            # 将评估规范插入数据库
             try:
-                from app.db.database import database
-                database.insert_evaluation_spec(spec.to_dict(embeddings=True))
+                store_evaluation_spec(database = database, spec = spec.to_dict(embeddings=True))
             except Exception as e:
-                print(f"Error inserting evaluation spec: {str(e)}")
+                print(f"Error upserting evaluation spec: {str(e)}")
                 raise
         
         # 保存更新后的评估规范到JSON文件

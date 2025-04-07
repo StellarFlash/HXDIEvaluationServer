@@ -37,8 +37,16 @@ class EvidenceItem(BaseModel):
         
         if embeddings:
             if self.keywords_embedding is not None:
-                data["keywords_embedding"] = self.keywords_embedding
+                data["keywords_embedding"] = (
+                    self.keywords_embedding["vector"] 
+                    if isinstance(self.keywords_embedding, dict) 
+                    else self.keywords_embedding
+                )
             if self.summary_embedding is not None:
-                data["summary_embedding"] = self.summary_embedding
+                data["summary_embedding"] = (
+                    self.summary_embedding["vector"]
+                    if isinstance(self.summary_embedding, dict)
+                    else self.summary_embedding
+                )
         
         return data
